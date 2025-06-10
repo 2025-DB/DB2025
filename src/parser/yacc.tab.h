@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_HOME_GUO_CODE_DB2024_RMDB_SRC_PARSER_YACC_TAB_H_INCLUDED
-# define YY_YY_HOME_GUO_CODE_DB2024_RMDB_SRC_PARSER_YACC_TAB_H_INCLUDED
+#ifndef YY_YY_USERS_SXY_DOCUMENTS_PROJECTS_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED
+# define YY_YY_USERS_SXY_DOCUMENTS_PROJECTS_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -78,31 +78,21 @@ extern int yydebug;
     INDEX = 279,                   /* INDEX  */
     AND = 280,                     /* AND  */
     JOIN = 281,                    /* JOIN  */
-    INNER = 282,                   /* INNER  */
-    LEFT = 283,                    /* LEFT  */
-    RIGHT = 284,                   /* RIGHT  */
-    FULL = 285,                    /* FULL  */
-    ON = 286,                      /* ON  */
-    AS = 287,                      /* AS  */
-    EXIT = 288,                    /* EXIT  */
-    HELP = 289,                    /* HELP  */
-    TXN_BEGIN = 290,               /* TXN_BEGIN  */
-    TXN_COMMIT = 291,              /* TXN_COMMIT  */
-    TXN_ABORT = 292,               /* TXN_ABORT  */
-    TXN_ROLLBACK = 293,            /* TXN_ROLLBACK  */
-    ORDER_BY = 294,                /* ORDER_BY  */
-    ENABLE_NESTLOOP = 295,         /* ENABLE_NESTLOOP  */
-    ENABLE_SORTMERGE = 296,        /* ENABLE_SORTMERGE  */
-    LEQ = 297,                     /* LEQ  */
-    NEQ = 298,                     /* NEQ  */
-    GEQ = 299,                     /* GEQ  */
-    T_EOF = 300,                   /* T_EOF  */
-    EXPLAIN = 301,                 /* EXPLAIN  */
-    IDENTIFIER = 302,              /* IDENTIFIER  */
-    VALUE_STRING = 303,            /* VALUE_STRING  */
-    VALUE_INT = 304,               /* VALUE_INT  */
-    VALUE_FLOAT = 305,             /* VALUE_FLOAT  */
-    VALUE_BOOL = 306               /* VALUE_BOOL  */
+    EXIT = 282,                    /* EXIT  */
+    HELP = 283,                    /* HELP  */
+    TXN_BEGIN = 284,               /* TXN_BEGIN  */
+    TXN_COMMIT = 285,              /* TXN_COMMIT  */
+    TXN_ABORT = 286,               /* TXN_ABORT  */
+    TXN_ROLLBACK = 287,            /* TXN_ROLLBACK  */
+    ORDER_BY = 288,                /* ORDER_BY  */
+    LEQ = 289,                     /* LEQ  */
+    NEQ = 290,                     /* NEQ  */
+    GEQ = 291,                     /* GEQ  */
+    T_EOF = 292,                   /* T_EOF  */
+    IDENTIFIER = 293,              /* IDENTIFIER  */
+    VALUE_STRING = 294,            /* VALUE_STRING  */
+    VALUE_INT = 295,               /* VALUE_INT  */
+    VALUE_FLOAT = 296              /* VALUE_FLOAT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -129,4 +119,4 @@ struct YYLTYPE
 int yyparse (void);
 
 
-#endif /* !YY_YY_HOME_GUO_CODE_DB2024_RMDB_SRC_PARSER_YACC_TAB_H_INCLUDED  */
+#endif /* !YY_YY_USERS_SXY_DOCUMENTS_PROJECTS_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED  */

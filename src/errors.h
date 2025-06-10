@@ -182,12 +182,6 @@ public:
     explicit AmbiguousColumnError(const std::string &col_name) : RMDBError("Ambiguous column: " + col_name) {}
 };
 
-class DuplicateAliasError : public RMDBError
-{
-public:
-    explicit DuplicateAliasError(const std::string &alias_name) : RMDBError("Duplicate alias: " + alias_name) {}
-};
-
 class PageNotExistError : public RMDBError
 {
 public:

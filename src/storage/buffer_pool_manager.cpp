@@ -85,16 +85,9 @@ Page *BufferPoolManager::fetch_page(PageId page_id)
     if (it != page_table_.end())
     {
         frame_id_t frame_id = it->second;
-        Page *page = &pages_[frame_id];
-        if (page->pin_count_ == 0)
-        {
-            // 如果pin_count为0说明是新取出的页
-            // 需要在replacer中固定该页
-            replacer_->pin(frame_id);
-        }
-        // replacer_->pin(frame_id);  // 固定该页
-        page->pin_count_++;
-        return page;
+        replacer_->pin(frame_id);
+        pages_[frame_id].pin_count_++;
+        return &pages_[frame_id];
     }
 
     frame_id_t frame_id;
@@ -147,16 +140,14 @@ bool BufferPoolManager::unpin_page(PageId page_id, bool is_dirty)
     {
         return false;
     }
+    else if (page_pin_count > 0 && --page_pin_count == 0)
+    {
+        replacer_->unpin(frame_id);
+    }
 
-    // 先标记脏页，再减少pin_count，确保页面在被替换前已经被正确标记
     if (is_dirty)
     {
         mark_dirty(page);
-    }
-
-    if (page_pin_count > 0 && --page_pin_count == 0)
-    {
-        replacer_->unpin(frame_id);
     }
 
     return true;
@@ -277,8 +268,7 @@ void BufferPoolManager::flush_all_pages(int fd)
         frame_id_t frame_id = entry.second;
         Page *page = &pages_[frame_id];
 
-        // 只刷新指定文件的页面
-        if (page_id.fd == fd)
+        if (page->is_dirty_)
         {
             disk_manager_->write_page(page_id.fd, page_id.page_no, page->data_, PAGE_SIZE);
             page->is_dirty_ = false;

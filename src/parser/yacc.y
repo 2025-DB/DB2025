@@ -22,10 +22,9 @@ using namespace ast;
 
 // keywords
 %token SHOW TABLES CREATE TABLE DROP DESC INSERT INTO VALUES DELETE FROM ASC ORDER BY
-WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN INNER LEFT RIGHT FULL ON AS EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK ORDER_BY ENABLE_NESTLOOP ENABLE_SORTMERGE
+WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK ORDER_BY ENABLE_NESTLOOP ENABLE_SORTMERGE
 // non-keywords
 %token LEQ NEQ GEQ T_EOF
-%token EXPLAIN
 
 // type-specific tokens
 %token <sv_str> IDENTIFIER VALUE_STRING
@@ -43,14 +42,9 @@ WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN INNER LEFT RIGHT FULL ON A
 %type <sv_val> value
 %type <sv_vals> valueList
 %type <sv_str> tbName colName
-%type <sv_strs> colNameList
+%type <sv_strs> tableList colNameList
 %type <sv_col> col
 %type <sv_cols> colList selector
-%type <sv_table_ref> tableRef
-%type <sv_table_refs> baseTableList tableList
-%type <sv_join_exprs> joinList
-%type <sv_join_expr> joinExpr
-%type <sv_join_type> joinType
 %type <sv_set_clause> setClause
 %type <sv_set_clauses> setClauses
 %type <sv_cond> condition
@@ -160,13 +154,9 @@ dml:
     {
         $$ = std::make_shared<UpdateStmt>($2, $4, $5);
     }
-    |   SELECT selector FROM baseTableList joinList optWhereClause opt_order_clause
+    |   SELECT selector FROM tableList optWhereClause opt_order_clause
     {
-        $$ = std::make_shared<SelectStmt>($2, $4, $6, $5, $7);
-    }    
-    | EXPLAIN SELECT selector FROM baseTableList joinList optWhereClause opt_order_clause   
-    {
-        $$ = std::make_shared<ExplainStmt>($3, $5, $7, $6, $8);
+        $$ = std::make_shared<SelectStmt>($2, $4, $5, $6);
     }
     ;
 
@@ -275,17 +265,9 @@ col:
     {
         $$ = std::make_shared<Col>($1, $3);
     }
-    |   tbName '.' colName AS IDENTIFIER
-    {
-        $$ = std::make_shared<Col>($1, $3, $5);
-    }
     |   colName
     {
         $$ = std::make_shared<Col>("", $1);
-    }
-    |   colName AS IDENTIFIER
-    {
-        $$ = std::make_shared<Col>("", $1, $3);
     }
     ;
 
@@ -364,126 +346,18 @@ selector:
     |   colList
     ;
 
-tableRef:
+tableList:
         tbName
     {
-        $$ = std::make_shared<TableRef>($1);
+        $$ = std::vector<std::string>{$1};
     }
-    |   tbName AS IDENTIFIER
-    {
-        $$ = std::make_shared<TableRef>($1, $3);
-    }
-    |   tbName IDENTIFIER
-    {
-        $$ = std::make_shared<TableRef>($1, $2);
-    }
-    ;
-
-tableList:
-        tableRef
-    {
-        $$ = std::vector<std::shared_ptr<TableRef>>{$1};
-    }
-    |   tableList ',' tableRef
+    |   tableList ',' tbName
     {
         $$.push_back($3);
     }
-    |   tableList joinType JOIN tableRef ON condition
-    {
-        // 创建JOIN表达式并添加到表列表
-        auto join_expr = std::make_shared<JoinExpr>(
-            $$.back()->tab_name,  // 左表名
-            $4->tab_name,         // 右表名
-            std::vector<std::shared_ptr<BinaryExpr>>{$6}, // 连接条件
-            $2                    // JOIN类型
-        );
-        // 将JOIN表达式存储在特殊的表引用中
-        // 这里我们需要修改语义动作来支持JOIN
-        $$.push_back($4);
-    }
-    |   tableList JOIN tableRef ON condition
-    {
-        // 默认为INNER JOIN
-        auto join_expr = std::make_shared<JoinExpr>(
-            $$.back()->tab_name,  // 左表名
-            $3->tab_name,         // 右表名
-            std::vector<std::shared_ptr<BinaryExpr>>{$5}, // 连接条件
-            INNER_JOIN            // 默认为内连接
-        );
-        $$.push_back($3);
-    }
-    |   tableList JOIN tableRef
-    {
-        // 兼容原来的隐式JOIN语法
-        $$.push_back($3);
-    }
-    ;
-
-joinType:
-        INNER
-    {
-        $$ = INNER_JOIN;
-    }
-    |   LEFT
-    {
-        $$ = LEFT_JOIN;
-    }
-    |   RIGHT
-    {
-        $$ = RIGHT_JOIN;
-    }
-    |   FULL
-    {
-        $$ = FULL_JOIN;
-    }
-    ;
-
-baseTableList:
-        tableRef
-    {
-        $$ = std::vector<std::shared_ptr<TableRef>>{$1};
-    }
-    |   baseTableList ',' tableRef
+    |   tableList JOIN tbName
     {
         $$.push_back($3);
-    }
-    ;
-
-joinList:
-        /* epsilon */
-    {
-        $$ = std::vector<std::shared_ptr<JoinExpr>>{};
-    }
-    |   joinExpr
-    {
-        $$ = std::vector<std::shared_ptr<JoinExpr>>{$1};
-    }
-    |   joinList joinExpr
-    {
-        $$.push_back($2);
-    }
-    ;
-
-joinExpr:
-        joinType JOIN tableRef ON condition
-    {
-        // 这里需要获取左表名，暂时使用空字符串
-        $$ = std::make_shared<JoinExpr>(
-            "",           // 左表名，在语义分析阶段确定
-            $3,           // 右表引用（包含别名）
-            std::vector<std::shared_ptr<BinaryExpr>>{$5}, // 连接条件
-            $1            // JOIN类型
-        );
-    }
-    |   JOIN tableRef ON condition
-    {
-        // 默认为INNER JOIN
-        $$ = std::make_shared<JoinExpr>(
-            "",           // 左表名，在语义分析阶段确定
-            $2,           // 右表引用（包含别名）
-            std::vector<std::shared_ptr<BinaryExpr>>{$4}, // 连接条件
-            INNER_JOIN    // 默认为内连接
-        );
     }
     ;
 

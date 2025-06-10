@@ -15,15 +15,13 @@ See the Mulan PSL v2 for more details. */
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "parser/parser.h"
 #include "system/sm.h"
 #include "common/common.h"
 
-class Query
-{
-public:
+class Query{
+    public:
     std::shared_ptr<ast::TreeNode> parse;
     // TODO jointree
     // where条件
@@ -34,36 +32,29 @@ public:
     std::vector<std::string> tables;
     // update 的set 值
     std::vector<SetClause> set_clauses;
-    // insert 的values值
+    //insert 的values值
     std::vector<Value> values;
-    // 表别名映射（用于EXPLAIN显示）
-    std::map<std::string, std::string> table_alias_map;
-    // 标记原始查询是否是SELECT *
-    bool is_select_star = false;
 
-    Query() {}
+    Query(){}
+
 };
 
 class Analyze
 {
 private:
     SmManager *sm_manager_;
-
 public:
-    Analyze(SmManager *sm_manager) : sm_manager_(sm_manager) {}
-    ~Analyze() {}
+    Analyze(SmManager *sm_manager) : sm_manager_(sm_manager){}
+    ~Analyze(){}
 
     std::shared_ptr<Query> do_analyze(std::shared_ptr<ast::TreeNode> root);
 
 private:
     TabCol check_column(const std::vector<ColMeta> &all_cols, TabCol target);
-    TabCol check_column_with_alias(const std::vector<ColMeta> &all_cols, TabCol target, const std::map<std::string, std::string> &alias_map);
     void get_all_cols(const std::vector<std::string> &tab_names, std::vector<ColMeta> &all_cols);
     void get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv_conds, std::vector<Condition> &conds);
     void check_clause(const std::vector<std::string> &tab_names, std::vector<Condition> &conds);
-    void check_clause_with_alias(const std::vector<std::string> &tab_names, std::vector<Condition> &conds, const std::map<std::string, std::string> &alias_map);
     Value convert_sv_value(const std::shared_ptr<ast::Value> &sv_val);
     CompOp convert_sv_comp_op(ast::SvCompOp op);
-    bool can_cast_type(ColType from, ColType to);
-    void cast_value(Value &val, ColType to);
 };
+
